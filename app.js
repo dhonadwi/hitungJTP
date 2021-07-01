@@ -1,6 +1,3 @@
-//pk 05.0228
-var moment = require('moment');
-
 const tgl_awal = `2021-01-31`;
 const tenor = 12;
 const tgl_bayar = {
@@ -12,37 +9,75 @@ const tgl_bayar = {
 const jml_bayar = Object.keys(tgl_bayar).length;
 
 const pembayaran = {
-  async init(tgl, tenor) {
+  init(container, tgl, tenor) {
+    this.container = container;
     this.tgl = tgl;
     this.tenor = tenor;
 
-    await this.bulanAngsuran();
+    this.bulanAngsuran();
   },
 
-  async bulanAngsuran() {
+  bulanAngsuran() {
     const tgl_jtp = {};
     for (i = 1; i <= this.tenor; i++) {
-      tgl_jtp[i] = await moment(this.tgl).add(i, 'months').format('YYYY-MM-DD');
+      tgl_jtp[i] = moment(this.tgl).add(i, 'months').format('YYYY-MM-DD');
     }
     this.bayar(tgl_jtp)
   },
-  async bayar(tgl_jtp) {
+
+  bayar(tgl_jtp) {
     const tgl_pembayaran = {};
     for (i = 1; i <= jml_bayar; i++) {
-      tgl_pembayaran[i] = await `angsuran ke ${i} : ` + (new Date(tgl_bayar[i]) - new Date(tgl_jtp[i])) / 86400000 + ` hari`;
+      tgl_pembayaran[i] = `angsuran ke ${i} : ` + (new Date(tgl_bayar[i]) - new Date(tgl_jtp[i])) / 86400000 + ` hari`;
     }
     this.histori(tgl_jtp, tgl_pembayaran);
   },
-  async histori(jtp, bayar) {
-    const histori = {};
+
+  histori(jtp, bayar) {
+    const histor = {};
     for (i = 1; i <= tenor; i++) {
-
-      histori[i] = `${jtp[i]} - ${tgl_bayar[i]} | ${bayar[i]}`; //${denda[i]}`;
+      histor[i] = {
+        "jatuhtempo": jtp[i],
+        "tgl_bayar": tgl_bayar[i],
+        "keterangan": bayar[i],
+      }
     };
-
-    console.log(histori);
-
+    const historLength = Object.keys(histor).length;
+    for (i = 1; 1 <= historLength; i++) {
+      let ket = '';
+      let bayar = '';
+      if (histor[i].keterangan != undefined) {
+        ket = histor[i].keterangan;
+      }
+      if (histor[i].tgl_bayar != null) {
+        bayar = histor[i].tgl_bayar;
+      }
+      this.container.innerHTML += `
+      <tr>
+        <td width='50px'>${i}</td>
+        <td width='150px'>${histor[i].jatuhtempo}</td>
+        <td width='100px'>${bayar}</td >
+      <td>${ket}</td>
+      </tr > `;
+    }
   }
 };
 
-pembayaran.init(tgl_awal, tenor);
+const containHistori = document.querySelector('.container');
+pembayaran.init(containHistori, tgl_awal, tenor);
+
+
+// const tesDulu = {
+//   apa(a, b) {
+//     this.a = a;
+//     this.b = b;
+//     this.skuy();
+//   },
+//   skuy() {
+//     // return this.a * this.b;
+//     console.log(this.a * this.b);
+//   }
+// };
+
+// const hasilKali = tesDulu.apa(4, 3);
+// console.log(hasilKali);
